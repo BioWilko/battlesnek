@@ -1,4 +1,5 @@
 import random
+import operator
 from typing import List, Dict
 
 """
@@ -112,11 +113,8 @@ eating_lines = [
 ]
 
 
-possible_moves = ["up", "down", "left", "right"]
-
-
 def derive_secondary(data: dict):
-    secondary_dict = {}
+    secondary_dict = {"current_pos": data["you"]["head"]}
     x = data["you"]["head"]["x"]
     y = data["you"]["head"]["y"]
     x_limits = (-1, data["board"]["width"] + 1)
@@ -152,7 +150,88 @@ def derive_secondary(data: dict):
     return secondary_dict
 
 
-def choose_move(data: dict) -> str:
+def generate_vector(current_pos, target_pos):
+    return {
+        "x": target_pos["x"] - current_pos["x"],
+        "y": target_pos["y"] - current_pos["y"],
+    }
+
+
+def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
+    vector = generate_vector(secondary_dict["current_pos"], target_position)
+    if vector["x"] >= 0 and vector["y"] >= 0:
+        if vector["x"] > vector["y"]:
+            move = "right" if "right" in viable_moves else False
+            if move:
+                return move
+        if vector["x"] < vector["y"]:
+            move = "up" if "up" in viable_moves else False
+            if move:
+                return move
+            if all(["up", "right"]) in viable_moves:
+                return random.choice(["up", "right"])
+            else:
+                for item in ["up", "right"]:
+                    if item in viable_moves:
+                        return item
+    elif vector["x"] >= 0 and vector["y"] <= 0:
+        if vector["x"] > vector["y"]:
+            move = "right" if "right" in viable_moves else False
+            if move:
+                return move
+        if vector["x"] < vector["y"]:
+            move = "down" if "down" in viable_moves else False
+            if move:
+                return move
+            if all(["down", "right"]) in viable_moves:
+                return random.choice(["down", "right"])
+            else:
+                for item in ["down", "right"]:
+                    if item in viable_moves:
+                        return item
+    elif vector["x"] <= 0 and vector["y"] <= 0:
+        if vector["x"] > vector["y"]:
+            move = "left" if "left" in viable_moves else False
+            if move:
+                return move
+        if vector["x"] < vector["y"]:
+            move = "down" if "down" in viable_moves else False
+            if move:
+                return move
+            if all(["down", "left"]) in viable_moves:
+                return random.choice(["down", "left"])
+            else:
+                for item in ["down", "left"]:
+                    if item in viable_moves:
+                        return item
+    else:
+        if vector["x"] > vector["y"]:
+            move = "left" if "left" in viable_moves else False
+            if move:
+                return move
+        if vector["x"] < vector["y"]:
+            move = "up" if "up" in viable_moves else False
+            if move:
+                return move
+            if all(["up", "left"]) in viable_moves:
+                return random.choice(["up", "left"])
+            else:
+                for item in ["up", "left"]:
+                    if item in viable_moves:
+                        return item
+
+
+def find_closest(data: dict, secondary_dict):
+    vectors = [
+        generate_vector(secondary_dict["current_pos"], food)
+        for food in data["board"]["food"]
+    ]
+    total_moves = [abs(vector["x"]) + abs(vector["y"]) for vector in vectors]
+    position = total_moves.index(min(total_moves))
+    return vectors[position]
+
+
+def choose_move(data: dict):
     """
     data: Dictionary of all Game Board data as received from the Battlesnake Engine.
     For a full example of 'data', see https://docs.battlesnake.com/references/api/sample-move-request
@@ -164,7 +243,11 @@ def choose_move(data: dict) -> str:
     for each move of the game.
     """
 
+    possible_moves = ["up", "down", "left", "right"]
+
     secondary_dict = derive_secondary(data)
+
+    closest_food = find_closest(data, secondary_dict)
 
     viable_moves = [
         move
@@ -178,8 +261,8 @@ def choose_move(data: dict) -> str:
     if len(viable_moves) == 0:
         return random.choice(possible_moves)
 
-    for move in viable_moves:
-        if secondary_dict[move]["food"]:
-            return move
+    return path_to_position(data, closest_food, secondary_dict, viable_moves)
 
-    return random.choice(viable_moves)
+
+move = choose_move(test_data)
+print(move)
