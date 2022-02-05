@@ -229,7 +229,7 @@ def find_closest(data: dict, secondary_dict):
     ]
     total_moves = [abs(vector["x"]) + abs(vector["y"]) for vector in vectors]
     position = total_moves.index(min(total_moves))
-    return vectors[position]
+    return data["board"]["food"][position]
 
 
 def choose_move(data: dict):
@@ -251,6 +251,7 @@ def choose_move(data: dict):
     print(secondary_dict)
 
     closest_food = find_closest(data, secondary_dict)
+    print(closest_food)
 
     # viable_moves = [
     #     move
