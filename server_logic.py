@@ -26,9 +26,9 @@ test_data = {
                 "id": "snake-508e96ac-94ad-11ea-bb37",
                 "name": "My Snake",
                 "health": 54,
-                "body": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0}],
+                "body": [{"x": 0, "y": 1}, {"x": 0, "y": 0}, {"x": 1, "y": 0}],
                 "latency": "111",
-                "head": {"x": 0, "y": 0},
+                "head": {"x": 0, "y": 1},
                 "length": 3,
                 "shout": "why are we shouting??",
                 "squad": "",
@@ -49,7 +49,7 @@ test_data = {
                     {"x": 6, "y": 2},
                 ],
                 "latency": "222",
-                "head": {"x": 5, "y": 4},
+                "head": {"x": 5, "y": 2},
                 "length": 4,
                 "shout": "I'm not really sure...",
                 "squad": "",
@@ -65,9 +65,9 @@ test_data = {
         "id": "snake-508e96ac-94ad-11ea-bb37",
         "name": "My Snake",
         "health": 54,
-        "body": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0}],
+        "body": [{"x": 0, "y": 1}, {"x": 0, "y": 0}, {"x": 1, "y": 0}],
         "latency": "111",
-        "head": {"x": 0, "y": 0},
+        "head": {"x": 0, "y": 1},
         "length": 3,
         "shout": "why are we shouting??",
         "squad": "",
@@ -221,6 +221,7 @@ def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
                         return item
     return random.choice(viable_moves)
 
+
 def find_closest(data: dict, secondary_dict):
     vectors = [
         generate_vector(secondary_dict["current_pos"], food)
@@ -262,6 +263,10 @@ def choose_move(data: dict):
 
     viable_moves = []
     for move in possible_moves:
+        print(f"{move} -> wall {secondary_dict[move]['wall']}")
+        print(f"{move} -> hazard {secondary_dict[move]['hazard']}")
+        print(f"{move} -> self {secondary_dict[move]['self']}")
+        print(f"{move} -> enemy {secondary_dict[move]['enemy']}")
         if (
             not secondary_dict[move]["wall"]
             and not secondary_dict[move]["hazard"]
