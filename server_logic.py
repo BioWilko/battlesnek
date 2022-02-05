@@ -19,7 +19,7 @@ test_data = {
     "board": {
         "height": 11,
         "width": 11,
-        "food": [{"x": 5, "y": 5}, {"x": 9, "y": 0}, {"x": 2, "y": 6}],
+        "food": [{"x": 1, "y": 1}, {"x": 9, "y": 0}, {"x": 2, "y": 6}],
         "hazards": [{"x": 3, "y": 2}],
         "snakes": [
             {
@@ -43,7 +43,7 @@ test_data = {
                 "name": "Another Snake",
                 "health": 16,
                 "body": [
-                    {"x": 0, "y": 1},
+                    {"x": 5, "y": 2},
                     {"x": 5, "y": 3},
                     {"x": 6, "y": 3},
                     {"x": 6, "y": 2},
@@ -129,7 +129,7 @@ def derive_secondary(data: dict):
         "left": (x - 1, y),
         "right": (x + 1, y),
     }.items():
-        position = {"x": formula, "y": formula}
+        position = {"x": formula[0], "y": formula[1]}
         secondary_dict[direction] = {}
         secondary_dict[direction]["position"] = position
         secondary_dict[direction]["wall"] = (
@@ -219,7 +219,7 @@ def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
                 for item in ["up", "left"]:
                     if item in viable_moves:
                         return item
-
+    return random.choice(viable_moves)
 
 def find_closest(data: dict, secondary_dict):
     vectors = [
@@ -247,17 +247,30 @@ def choose_move(data: dict):
 
     secondary_dict = derive_secondary(data)
 
+    print(secondary_dict)
+
     closest_food = find_closest(data, secondary_dict)
 
-    viable_moves = [
-        move
-        for move in possible_moves
-        if not secondary_dict[move]["wall"]
-        and not secondary_dict[move]["hazard"]
-        and not secondary_dict[move]["self"]
-        and not secondary_dict[move]["enemy"]
-    ]
+    # viable_moves = [
+    #     move
+    #     for move in possible_moves
+    #     if not secondary_dict[move]["wall"]
+    #     and not secondary_dict[move]["hazard"]
+    #     and not secondary_dict[move]["self"]
+    #     and not secondary_dict[move]["enemy"]
+    # ]
 
+    viable_moves = []
+    for move in possible_moves:
+        if (
+            not secondary_dict[move]["wall"]
+            and not secondary_dict[move]["hazard"]
+            and not secondary_dict[move]["self"]
+            and not secondary_dict[move]["enemy"]
+        ):
+            viable_moves.append(move)
+
+    print(viable_moves)
     if len(viable_moves) == 0:
         return random.choice(possible_moves)
 
