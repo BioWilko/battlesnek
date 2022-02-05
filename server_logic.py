@@ -8,30 +8,148 @@ We have started this for you, with a function to help remove the 'neck' directio
 from the list of possible moves!
 """
 
+test_data = {
+    "game": {
+        "id": "game-00fe20da-94ad-11ea-bb37",
+        "ruleset": {"name": "standard", "version": "v.1.2.3"},
+        "timeout": 500,
+    },
+    "turn": 14,
+    "board": {
+        "height": 11,
+        "width": 11,
+        "food": [{"x": 5, "y": 5}, {"x": 9, "y": 0}, {"x": 2, "y": 6}],
+        "hazards": [{"x": 3, "y": 2}],
+        "snakes": [
+            {
+                "id": "snake-508e96ac-94ad-11ea-bb37",
+                "name": "My Snake",
+                "health": 54,
+                "body": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0}],
+                "latency": "111",
+                "head": {"x": 0, "y": 0},
+                "length": 3,
+                "shout": "why are we shouting??",
+                "squad": "",
+                "customizations": {
+                    "color": "#FF0000",
+                    "head": "pixel",
+                    "tail": "pixel",
+                },
+            },
+            {
+                "id": "snake-b67f4906-94ae-11ea-bb37",
+                "name": "Another Snake",
+                "health": 16,
+                "body": [
+                    {"x": 0, "y": 1},
+                    {"x": 5, "y": 3},
+                    {"x": 6, "y": 3},
+                    {"x": 6, "y": 2},
+                ],
+                "latency": "222",
+                "head": {"x": 5, "y": 4},
+                "length": 4,
+                "shout": "I'm not really sure...",
+                "squad": "",
+                "customizations": {
+                    "color": "#26CF04",
+                    "head": "silly",
+                    "tail": "curled",
+                },
+            },
+        ],
+    },
+    "you": {
+        "id": "snake-508e96ac-94ad-11ea-bb37",
+        "name": "My Snake",
+        "health": 54,
+        "body": [{"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0}],
+        "latency": "111",
+        "head": {"x": 0, "y": 0},
+        "length": 3,
+        "shout": "why are we shouting??",
+        "squad": "",
+        "customizations": {"color": "#FF0000", "head": "pixel", "tail": "pixel"},
+    },
+}
 
-def avoid_my_neck(my_head: Dict[str, int], my_body: List[dict], possible_moves: List[str]) -> List[str]:
-    """
-    my_head: Dictionary of x/y coordinates of the Battlesnake head.
-            e.g. {"x": 0, "y": 0}
-    my_body: List of dictionaries of x/y coordinates for every segment of a Battlesnake.
-            e.g. [ {"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0} ]
-    possible_moves: List of strings. Moves to pick from.
-            e.g. ["up", "down", "left", "right"]
+attack_lines = [
+    "Get your stinking paws off me you damn dirty ape!",
+    "It's tail time!",
+    "YYYEEESSS!",
+    "That's for 12 years of Full House!",
+    "Now, that's what I call getting some tail.",
+    "All right! It's tail time!",
+    "My tail's gonna kick your butt!",
+    "Time to go postal!",
+    "Say hello to the floor!",
+    "Put that in your pipe and smoke it.",
+    "I'm doing this for you!",
+    "Gecko-chop baby yeah!",
+    "Gecko-chop baby!",
+    "Karate-chop!",
+    "Watch me use my tail to kick your butt.",
+    "This is for Mr. Sinatra.",
+    "You're nothing see, you're nothing!",
+    "I'll give you such a pinch!",
+    "Move like a butterfly sting like a gecko!",
+    "This is for all the angels in heaven.",
+    "Eat this!",
+    "File this under 'ouch'!",
+    "Judo-chop baby!",
+    "Judo-chop baby yeah!",
+]
 
-    return: The list of remaining possible_moves, with the 'neck' direction removed
-    """
-    my_neck = my_body[1]  # The segment of body right after the head is the 'neck'
+eating_lines = [
+    "Mmmm... buttery.",
+    "Tastes are licking and...ehhhhhhh we heard it.",
+    "Spock, load the tongue.",
+    "Burp!",
+    "That's the sweet stuff darling.",
+    "Mmm... TVs instead of potatoes.",
+    "All right that's the spot.",
+]
 
-    if my_neck["x"] < my_head["x"]:  # my neck is left of my head
-        possible_moves.remove("left")
-    elif my_neck["x"] > my_head["x"]:  # my neck is right of my head
-        possible_moves.remove("right")
-    elif my_neck["y"] < my_head["y"]:  # my neck is below my head
-        possible_moves.remove("down")
-    elif my_neck["y"] > my_head["y"]:  # my neck is above my head
-        possible_moves.remove("up")
 
-    return possible_moves
+possible_moves = ["up", "down", "left", "right"]
+
+
+def derive_secondary(data: dict):
+    secondary_dict = {}
+    x = data["you"]["head"]["x"]
+    y = data["you"]["head"]["y"]
+    x_limits = (-1, data["board"]["width"] + 1)
+    y_limits = (-1, data["board"]["height"] + 1)
+    enemy_positions = []
+    for snake in data["board"]["snakes"]:
+        if snake["id"] != data["you"]["id"]:
+            enemy_positions.extend(snake["body"])
+    for direction, formula in {
+        "up": (x, y + 1),
+        "down": (x, y - 1),
+        "left": (x - 1, y),
+        "right": (x + 1, y),
+    }.items():
+        position = {"x": formula, "y": formula}
+        secondary_dict[direction] = {}
+        secondary_dict[direction]["position"] = position
+        secondary_dict[direction]["wall"] = (
+            True if position["x"] in x_limits or position["y"] in y_limits else False
+        )
+        secondary_dict[direction]["food"] = (
+            True if position in data["board"]["food"] else False
+        )
+        secondary_dict[direction]["hazard"] = (
+            True if position in data["board"]["hazards"] else False
+        )
+        secondary_dict[direction]["self"] = (
+            True if position in data["you"]["body"] else False
+        )
+        secondary_dict[direction]["enemy"] = (
+            True if position in enemy_positions else False
+        )
+    return secondary_dict
 
 
 def choose_move(data: dict) -> str:
@@ -44,36 +162,24 @@ def choose_move(data: dict) -> str:
     Use the information in 'data' to decide your next move. The 'data' variable can be interacted
     with as a Python Dictionary, and contains all of the information about the Battlesnake board
     for each move of the game.
-
     """
-    my_head = data["you"]["head"]  # A dictionary of x/y coordinates like {"x": 0, "y": 0}
-    my_body = data["you"]["body"]  # A list of x/y coordinate dictionaries like [ {"x": 0, "y": 0}, {"x": 1, "y": 0}, {"x": 2, "y": 0} ]
 
-    # TODO: uncomment the lines below so you can see what this data looks like in your output!
-    # print(f"~~~ Turn: {data['turn']}  Game Mode: {data['game']['ruleset']['name']} ~~~")
-    # print(f"All board data this turn: {data}")
-    # print(f"My Battlesnakes head this turn is: {my_head}")
-    # print(f"My Battlesnakes body this turn is: {my_body}")
+    secondary_dict = derive_secondary(data)
 
-    possible_moves = ["up", "down", "left", "right"]
+    viable_moves = [
+        move
+        for move in possible_moves
+        if not secondary_dict[move]["wall"]
+        and not secondary_dict[move]["hazard"]
+        and not secondary_dict[move]["self"]
+        and not secondary_dict[move]["enemy"]
+    ]
 
-    # Don't allow your Battlesnake to move back in on it's own neck
-    possible_moves = avoid_my_neck(my_head, my_body, possible_moves)
+    if len(viable_moves) == 0:
+        return random.choice(possible_moves)
 
-    # TODO: Using information from 'data', find the edges of the board and don't let your Battlesnake move beyond them
-    # board_height = ?
-    # board_width = ?
+    for move in viable_moves:
+        if secondary_dict[move]["food"]:
+            return move
 
-    # TODO Using information from 'data', don't let your Battlesnake pick a move that would hit its own body
-
-    # TODO: Using information from 'data', don't let your Battlesnake pick a move that would collide with another Battlesnake
-
-    # TODO: Using information from 'data', make your Battlesnake move towards a piece of food on the board
-
-    # Choose a random direction from the remaining possible_moves to move in, and then return that move
-    move = random.choice(possible_moves)
-    # TODO: Explore new strategies for picking a move that are better than random
-
-    print(f"{data['game']['id']} MOVE {data['turn']}: {move} picked from all valid options in {possible_moves}")
-
-    return move
+    return random.choice(viable_moves)
