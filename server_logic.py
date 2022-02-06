@@ -10,70 +10,66 @@ from the list of possible moves!
 """
 
 test_data = {
-    "game": {
-        "id": "game-00fe20da-94ad-11ea-bb37",
-        "ruleset": {"name": "standard", "version": "v.1.2.3"},
-        "timeout": 500,
+    "you": {
+        "latency": "0",
+        "id": "09a77de2-27d7-4459-a18b-b4df3968c854",
+        "health": 100,
+        "length": 3,
+        "shout": "",
+        "head": {"y": 5, "x": 9},
+        "customizations": {"color": "#39e600", "tail": "skinny", "head": "silly"},
+        "body": [{"y": 5, "x": 9}, {"y": 5, "x": 9}, {"y": 5, "x": 9}],
+        "name": "gek tha snek",
+        "squad": "",
     },
-    "turn": 14,
+    "turn": 0,
     "board": {
-        "height": 11,
-        "width": 11,
-        "food": [{"x": 1, "y": 1}, {"x": 9, "y": 0}, {"x": 2, "y": 6}],
-        "hazards": [{"x": 3, "y": 2}],
         "snakes": [
             {
-                "id": "snake-508e96ac-94ad-11ea-bb37",
-                "name": "My Snake",
-                "health": 54,
-                "body": [{"x": 0, "y": 1}, {"x": 0, "y": 0}, {"x": 1, "y": 0}],
-                "latency": "111",
-                "head": {"x": 0, "y": 1},
+                "latency": "0",
+                "id": "09a77de2-27d7-4459-a18b-b4df3968c854",
+                "health": 100,
                 "length": 3,
-                "shout": "why are we shouting??",
-                "squad": "",
+                "shout": "",
+                "head": {"y": 5, "x": 9},
                 "customizations": {
-                    "color": "#FF0000",
-                    "head": "pixel",
-                    "tail": "pixel",
-                },
-            },
-            {
-                "id": "snake-b67f4906-94ae-11ea-bb37",
-                "name": "Another Snake",
-                "health": 16,
-                "body": [
-                    {"x": 5, "y": 2},
-                    {"x": 5, "y": 3},
-                    {"x": 6, "y": 3},
-                    {"x": 6, "y": 2},
-                ],
-                "latency": "222",
-                "head": {"x": 5, "y": 2},
-                "length": 4,
-                "shout": "I'm not really sure...",
-                "squad": "",
-                "customizations": {
-                    "color": "#26CF04",
+                    "color": "#39e600",
+                    "tail": "skinny",
                     "head": "silly",
-                    "tail": "curled",
                 },
-            },
+                "body": [{"y": 5, "x": 9}, {"y": 5, "x": 9}, {"y": 5, "x": 9}],
+                "name": "gek tha snek",
+                "squad": "",
+            }
         ],
+        "width": 11,
+        "hazards": [],
+        "height": 11,
+        "food": [{"y": 4, "x": 10}, {"y": 5, "x": 5}],
     },
-    "you": {
-        "id": "snake-508e96ac-94ad-11ea-bb37",
-        "name": "My Snake",
-        "health": 54,
-        "body": [{"x": 0, "y": 1}, {"x": 0, "y": 0}, {"x": 1, "y": 0}],
-        "latency": "111",
-        "head": {"x": 0, "y": 1},
-        "length": 3,
-        "shout": "why are we shouting??",
-        "squad": "",
-        "customizations": {"color": "#FF0000", "head": "pixel", "tail": "pixel"},
+    "game": {
+        "source": "custom",
+        "ruleset": {
+            "version": "Mojave/3.5.2",
+            "name": "solo",
+            "settings": {
+                "hazardDamagePerTurn": 14,
+                "royale": {"shrinkEveryNTurns": 25},
+                "squad": {
+                    "sharedHealth": True,
+                    "sharedLength": True,
+                    "allowBodyCollisions": True,
+                    "sharedElimination": True,
+                },
+                "minimumFood": 1,
+                "foodSpawnChance": 15,
+            },
+        },
+        "timeout": 500,
+        "id": "0665101b-d762-4605-948f-98aedf93a4b5",
     },
 }
+
 
 attack_lines = [
     "Get your stinking paws off me you damn dirty ape!",
@@ -159,8 +155,9 @@ def generate_vector(current_pos, target_pos):
 
 def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
     vector = generate_vector(secondary_dict["current_pos"], target_position)
+    print(vector)
     if vector["x"] >= 0 and vector["y"] >= 0:
-        if vector["x"] > vector["y"]:
+        if abs(vector["x"]) > abs(vector["y"]):
             move = "right" if "right" in viable_moves else False
             if move:
                 return move
@@ -168,42 +165,42 @@ def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
             move = "up" if "up" in viable_moves else False
             if move:
                 return move
-            if all(["up", "right"]) in viable_moves:
-                return random.choice(["up", "right"])
-            else:
-                for item in ["up", "right"]:
-                    if item in viable_moves:
-                        return item
+        if "up" in viable_moves and "right" in viable_moves:
+            return random.choice(["up", "right"])
+        else:
+            for item in ["up", "right"]:
+                if item in viable_moves:
+                    return item
     elif vector["x"] >= 0 and vector["y"] <= 0:
-        if vector["x"] > vector["y"]:
+        if abs(vector["x"]) > abs(vector["y"]):
             move = "right" if "right" in viable_moves else False
             if move:
                 return move
-        if vector["x"] < vector["y"]:
+        if abs(vector["x"]) < abs(vector["y"]):
             move = "down" if "down" in viable_moves else False
             if move:
                 return move
-            if all(["down", "right"]) in viable_moves:
-                return random.choice(["down", "right"])
-            else:
-                for item in ["down", "right"]:
-                    if item in viable_moves:
-                        return item
+        if "down" in viable_moves and "right" in viable_moves:
+            return random.choice(["down", "right"])
+        else:
+            for item in ["down", "right"]:
+                if item in viable_moves:
+                    return item
     elif vector["x"] <= 0 and vector["y"] <= 0:
-        if vector["x"] > vector["y"]:
+        if abs(vector["x"]) > abs(vector["y"]):
             move = "left" if "left" in viable_moves else False
             if move:
                 return move
-        if vector["x"] < vector["y"]:
+        if abs(vector["x"]) < abs(vector["y"]):
             move = "down" if "down" in viable_moves else False
             if move:
                 return move
-            if all(["down", "left"]) in viable_moves:
-                return random.choice(["down", "left"])
-            else:
-                for item in ["down", "left"]:
-                    if item in viable_moves:
-                        return item
+        if "down" in viable_moves and "left" in viable_moves:
+            return random.choice(["down", "left"])
+        else:
+            for item in ["down", "left"]:
+                if item in viable_moves:
+                    return item
     else:
         if vector["x"] > vector["y"]:
             move = "left" if "left" in viable_moves else False
@@ -213,12 +210,12 @@ def path_to_position(data: dict, target_position, secondary_dict, viable_moves):
             move = "up" if "up" in viable_moves else False
             if move:
                 return move
-            if all(["up", "left"]) in viable_moves:
-                return random.choice(["up", "left"])
-            else:
-                for item in ["up", "left"]:
-                    if item in viable_moves:
-                        return item
+        if "up" in viable_moves and "left" in viable_moves:
+            return random.choice(["up", "left"])
+        else:
+            for item in ["up", "left"]:
+                if item in viable_moves:
+                    return item
     return random.choice(viable_moves)
 
 
@@ -264,10 +261,10 @@ def choose_move(data: dict):
 
     viable_moves = []
     for move in possible_moves:
-        print(f"{move} -> wall {secondary_dict[move]['wall']}")
-        print(f"{move} -> hazard {secondary_dict[move]['hazard']}")
-        print(f"{move} -> self {secondary_dict[move]['self']}")
-        print(f"{move} -> enemy {secondary_dict[move]['enemy']}")
+        # print(f"{move} -> wall {secondary_dict[move]['wall']}")
+        # print(f"{move} -> hazard {secondary_dict[move]['hazard']}")
+        # print(f"{move} -> self {secondary_dict[move]['self']}")
+        # print(f"{move} -> enemy {secondary_dict[move]['enemy']}")
         if (
             not secondary_dict[move]["wall"]
             and not secondary_dict[move]["hazard"]
